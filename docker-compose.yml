@@ -12,14 +12,14 @@ services:
     depends_on:
      - mysql
     environment:
-     - PUID=${PUID}
-     - PGID=${PGID}
-     - TZ=${TZ}
-     - WORDPRESS_DB_NAME=${MYSQL_DB_NAME}
-     - WORDPRESS_TABLE_PREFIX=${WP_PREFIX}
+     - PUID=1000
+     - PGID=1000
+     - TZ=Madrid/Europe
+     - WORDPRESS_DB_NAME=wp
+     - WORDPRESS_TABLE_PREFIX=wp_
      - WORDPRESS_DB_HOST= mysql
-     - WORDPRESS_DB_USER=${WP_DB_USER}
-     - WORDPRESS_DB_PASSWORD=${WP_DB_PWD}
+     - WORDPRESS_DB_USER=wordpress
+     - WORDPRESS_DB_PASSWORD=wordpress
     expose:
       - 80
       - 443
@@ -29,28 +29,26 @@ services:
     labels:
       # Traefik
       traefik.enable: 'true'
-      traefik.frontend.rule: "Host:${WP_HOST}"
+      traefik.frontend.rule: "Host:wp.marorzan.org"
       traefik.port: '80'
       # Caddy
-      caddy: ${WP_HOST}
+      caddy: wp.marorzan.org
       caddy.reverse_proxy: "{{upstreams 80}}"
     volumes:
       - ./php.ini:/usr/local/etc/php/conf.d/custom.ini
       - ./html:/var/www/html
   mysql:
-     image: mariadb:latest
-     restart: always
-     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PWD}
-      - MYSQL_USER=${WP_DB_USER}
-      - MYSQL_PASSWORD=${MYSQL_PWD}
-      - MYSQL_DATABASE=${MYSQL_DB_NAME}
+    image: mariadb:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress
+      - MYSQL_DATABASE=wp
     command: '--default-authentication-plugin=mysql_native_password'
-    env_file:
-      - .env
-     volumes:
+    volumes:
       - ./database:/var/lib/mysql
-     networks:
+    networks:
       - database
       - web      
 
