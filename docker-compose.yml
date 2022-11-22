@@ -1,0 +1,57 @@
+version: '3.3'
+
+networks:
+    web:
+      external: true
+    database: {}
+
+services:
+  
+  wordpress:
+    image: wordpress
+    restart: always
+    depends_on:
+     - mysql
+    environment:
+     - PUID=${PUID}
+     - PGID=${PGID}
+     - TZ=${TZ}
+     - WORDPRESS_DB_NAME=${MYSQL_DB_NAME}
+     - WORDPRESS_TABLE_PREFIX=${WP_PREFIX}
+     - WORDPRESS_DB_HOST= mysql
+     - WORDPRESS_DB_USER=${WP_DB_USER}
+     - WORDPRESS_DB_PASSWORD=${WP_DB_PWD}
+    expose:
+      - 80
+      - 443
+    networks:
+     - web
+     - database
+    labels:
+      # Traefik
+      traefik.enable: 'true'
+      traefik.frontend.rule: "Host:${WP_HOST}"
+      traefik.port: '80'
+      # Caddy
+      caddy: ${WP_HOST}
+      caddy.reverse_proxy: "{{upstreams 80}}"
+    env_file:
+      - .env
+    volumes:
+     - ./html:/var/www/html
+  mysql:
+     image: mariadb:latest
+     restart: always
+     environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PWD}
+      - MYSQL_USER=${WP_DB_USER}
+      - MYSQL_PASSWORD=${MYSQL_PWD}
+      - MYSQL_DATABASE=${MYSQL_DB_NAME}
+    env_file:
+      - .env
+     volumes:
+      - ./database:/var/lib/mysql
+     networks:
+      - database
+      - web      
+
