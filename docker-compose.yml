@@ -1,12 +1,11 @@
 version: '3.3'
 
 networks:
-    web:
-      external: true
-    database: {}
+  web:
+    external: true
+  database: {}
 
 services:
-  
   wordpress:
     image: wordpress
     restart: always
@@ -35,10 +34,9 @@ services:
       # Caddy
       caddy: ${WP_HOST}
       caddy.reverse_proxy: "{{upstreams 80}}"
-    env_file:
-      - .env
     volumes:
-     - ./html:/var/www/html
+      - ./php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./html:/var/www/html
   mysql:
      image: mariadb:latest
      restart: always
@@ -47,6 +45,7 @@ services:
       - MYSQL_USER=${WP_DB_USER}
       - MYSQL_PASSWORD=${MYSQL_PWD}
       - MYSQL_DATABASE=${MYSQL_DB_NAME}
+    command: '--default-authentication-plugin=mysql_native_password'
     env_file:
       - .env
      volumes:
